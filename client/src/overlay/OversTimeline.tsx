@@ -37,7 +37,13 @@ export const OversTimeline: React.FC<OversTimelineProps> = ({ snapshot, brandBlo
                         .filter(Boolean)
                         .join(' ')}
                     >
-                      {ball.display}
+                      {ball.isLatest ? (
+                        <>
+                          <span className="ov-ball-ripple-ring" aria-hidden="true" />
+                          <span className="ov-ball-ripple-ring-outer" aria-hidden="true" />
+                        </>
+                      ) : null}
+                      <span className="ov-ball-value">{ball.display}</span>
                     </span>
                   );
                 })}

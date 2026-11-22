@@ -45,10 +45,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ snapshot }) => {
         <div className="ov-team-text">
           <div className="ov-team-short">{leftTeam.shortName}</div>
           <div className="ov-team-score-row">
-            <span className={`ov-team-score ${leftScoreCompact ? 'ov-team-score--compact' : ''}`}>
+            <span
+              key={leftTeam.score}
+              className={`ov-team-score ${leftScoreCompact ? 'ov-team-score--compact' : ''} ov-team-score--pop`}
+            >
               {leftTeam.score}
             </span>
-            {leftTeam.overs ? <span className="ov-team-overs">{leftTeam.overs}</span> : null}
+            {leftTeam.overs ? (
+              <span key={leftTeam.overs} className="ov-team-overs">
+                {leftTeam.overs}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -69,10 +76,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ snapshot }) => {
         <div className="ov-team-text">
           <div className="ov-team-short">{rightTeam.shortName}</div>
           <div className="ov-team-score-row">
-            <span className={`ov-team-score ${rightScoreCompact ? 'ov-team-score--compact' : ''}`}>
+            <span
+              key={rightTeam.score}
+              className={`ov-team-score ${rightScoreCompact ? 'ov-team-score--compact' : ''} ov-team-score--pop`}
+            >
               {rightTeam.score}
             </span>
-            {rightTeam.overs ? <span className="ov-team-overs">{rightTeam.overs}</span> : null}
+            {rightTeam.overs ? (
+              <span key={rightTeam.overs} className="ov-team-overs">
+                {rightTeam.overs}
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="ov-team-badge ov-team-badge--right">

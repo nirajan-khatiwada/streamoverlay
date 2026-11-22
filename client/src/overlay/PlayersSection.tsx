@@ -92,8 +92,18 @@ const BatsmanCard: React.FC<{
     );
   }
 
+  const isStriker = Boolean(batsman.isStriker && !batsman.isOut);
+
   return (
-    <div className={`ov-player-col ${batsman.isOut ? 'ov-player-col--out' : ''}`}>
+    <div
+      className={[
+        'ov-player-col',
+        batsman.isOut ? 'ov-player-col--out' : '',
+        isStriker ? 'ov-player-col--striker' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="ov-player-main">
         <PlayerAvatar
           playerKey={batsman.fkey}
@@ -112,8 +122,11 @@ const BatsmanCard: React.FC<{
               <span className="ov-out-pill" aria-label="Batsman out">
                 OUT
               </span>
-            ) : batsman.isStriker ? (
-              <StrikerBatIcon />
+            ) : isStriker ? (
+              <div className="ov-striker-badge-row">
+                <StrikerBatIcon />
+                <span className="ov-striker-label-tag">ON STRIKE</span>
+              </div>
             ) : null}
           </div>
         </div>
@@ -181,16 +194,33 @@ const BowlerCard: React.FC<{
 };
 
 export const PlayersSection: React.FC<PlayersSectionProps> = ({ snapshot }) => {
+  const bat0 = snapshot.batsmen[0];
+  const bat1 = snapshot.batsmen[1];
+  const isBat0Striker = Boolean(bat0?.isStriker && !bat0?.isOut);
+  const isBat1Striker = Boolean(bat1?.isStriker && !bat1?.isOut);
+
   return (
     <>
       <div className="ov-role-header">
-        <span>BATSMAN</span>
-        <span>BATSMAN</span>
-        <span>BOWLER</span>
+        <div
+          className={`ov-role-cell ${isBat0Striker ? 'ov-role-cell--striker' : 'ov-role-cell--dark'}`}
+        >
+          <span className="ov-role-title">BATSMAN</span>
+          {isBat0Striker ? <span className="ov-role-strike-badge">STRIKER</span> : null}
+        </div>
+        <div
+          className={`ov-role-cell ${isBat1Striker ? 'ov-role-cell--striker' : 'ov-role-cell--dark'}`}
+        >
+          <span className="ov-role-title">BATSMAN</span>
+          {isBat1Striker ? <span className="ov-role-strike-badge">STRIKER</span> : null}
+        </div>
+        <div className="ov-role-cell ov-role-cell--dark">
+          <span className="ov-role-title">BOWLER</span>
+        </div>
       </div>
       <section className="ov-players-row" aria-label="Current batsmen and bowler">
-        <BatsmanCard batsman={snapshot.batsmen[0]} fallbackJersey={snapshot.leftTeam.jerseyUrl} />
-        <BatsmanCard batsman={snapshot.batsmen[1]} fallbackJersey={snapshot.leftTeam.jerseyUrl} />
+        <BatsmanCard batsman={bat0 ?? null} fallbackJersey={snapshot.leftTeam.jerseyUrl} />
+        <BatsmanCard batsman={bat1 ?? null} fallbackJersey={snapshot.leftTeam.jerseyUrl} />
         <BowlerCard bowler={snapshot.bowler} fallbackJersey={snapshot.rightTeam.jerseyUrl} />
       </section>
     </>

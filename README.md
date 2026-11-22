@@ -244,7 +244,37 @@ curl -X POST http://127.0.0.1:3000/api/alerts/subscriber \
 
 ---
 
-## 8. Security & Verification
+## 8. Broadcast Visual Dynamics & Dynamic Player Feedback
+
+The broadcast overlay incorporates live TV broadcast design patterns:
+
+### 1. Active Striker Recognition & Dynamic Theming
+- **Dynamic Role Header:** The batsman currently on strike (`isStriker === true`) receives a vibrant hot-magenta (`#d81b60` / `#e91e63`) header cell with an animated golden `STRIKER` badge. The non-striker and bowler remain in broadcast dark-slate (`#040c1b`).
+- **Strike Rotation:** As batsmen rotate strike on odd runs or over ends, the magenta highlight automatically shifts to the active batsman.
+- **Card Styling:** The active batsman's column container gets `.ov-player-col--striker` featuring an illuminated gradient, a golden top accent edge, luminous golden name typography (`#fffb91`), and an `ON STRIKE` pill tag.
+
+### 2. Blinking Bat Sticker
+- The cricket bat sticker beside the striker's figures is animated with `@keyframes ov-bat-blink`. It rhythmically pulses, rotates subtly, and flashes with a golden aura (`#facc15`), drawing viewer attention to the active batsman.
+
+### 3. Current Delivery Ball Ripple & Radar Animation
+- In the overs strip, the single latest bowled delivery (`isLatest: true`) features an animated cyan circular border with continuous concentric radar ripple rings (`.ov-ball-ripple-ring` and `.ov-ball-ripple-ring-outer`) expanding smoothly outward.
+- The ring dynamically tints to match the delivery outcome (electric violet `#e040fb` for SIX, fiery red `#ff3838` for WICKET, vibrant green `#00e676` for FOUR).
+
+### 4. Main Scoreboard Score Label Zoom In/Out
+- The main batting team score label (`.ov-team-score`) in the top scoreboard features `@keyframes ov-score-pop`. On each run update, it scales up to 122% with a warm golden flash (`#fffb8f`), then zooms out smoothly with elastic settling.
+- Uses `transform-origin: left center` for batting and `right center` for bowling scores to prevent layout shifting.
+
+### 5. Dismissed Batsman Grayscale & Persistent `OUT` Badge
+- When a wicket falls, the dismissed batsman's avatar immediately transitions to a high-contrast black-and-white grayscale filter (`filter: grayscale(100%) contrast(1.08) brightness(0.84)`).
+- A prominent red `OUT` badge appears over his figures, and his role header reverts to dark, remaining in this state until the incoming batsman walks in.
+
+### 6. Accessibility & Performance
+- All animations use hardware-accelerated compositor properties (`transform`, `opacity`, `filter`).
+- Supports `@media (prefers-reduced-motion: reduce)`, automatically disabling looping pulses and pops for viewers or stream encoders requiring reduced motion.
+
+---
+
+## 9. Security & Verification
 
 ### Security Controls Implemented
 - **Zero-Trust Input Validation:** All REST inputs validated with `zod` v4 schemas.

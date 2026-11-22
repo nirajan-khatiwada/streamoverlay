@@ -149,6 +149,41 @@
   color: #ffffff;
   white-space: nowrap;
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+  display: inline-block;
+  transform-origin: left center;
+  will-change: transform, filter;
+}
+
+.ov-team-side--right .ov-team-score {
+  transform-origin: right center;
+}
+
+.ov-team-score--pop {
+  animation: ov-score-pop 0.68s cubic-bezier(0.18, 0.89, 0.32, 1.25);
+}
+
+@keyframes ov-score-pop {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  24% {
+    transform: scale(1.22);
+    filter: brightness(1.4) drop-shadow(0 0 20px rgba(255, 235, 59, 0.95)) drop-shadow(0 0 36px rgba(0, 229, 255, 0.7));
+    color: #fffb8f;
+  }
+  50% {
+    transform: scale(0.96);
+    filter: brightness(1.08);
+  }
+  74% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+    color: #ffffff;
+  }
 }
 
 .ov-team-score--compact {
@@ -344,6 +379,7 @@
 }
 
 .ov-ball {
+  position: relative;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -355,6 +391,15 @@
   line-height: 1;
   flex-shrink: 0;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.ov-ball-value {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .ov-ball--long {
@@ -393,22 +438,102 @@
   color: #09111f;
 }
 
-/* Luminous outer ring on ONLY the single latest bowled delivery */
+/* Dynamic Animated Circle Radar Rings on ONLY the single latest delivery */
 .ov-ball--latest {
-  transform: scale(1.06);
-  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.85), 0 0 18px 6px rgba(0, 230, 118, 0.65);
+  z-index: 4;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px #00f0ff, 0 0 14px rgba(0, 240, 255, 0.95);
+  animation: ov-ball-latest-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes ov-ball-latest-pulse {
+  0%, 100% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px #00f0ff, 0 0 14px rgba(0, 240, 255, 0.9);
+  }
+  50% {
+    transform: scale(1.16);
+    box-shadow: 0 0 0 4.5px #38bdf8, 0 0 22px rgba(56, 189, 248, 1);
+  }
+}
+
+.ov-ball-ripple-ring,
+.ov-ball-ripple-ring-outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  margin-left: -24px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ov-ball-ripple-ring {
+  border: 3px solid #00f0ff;
+  animation: ov-ball-ripple 1.5s cubic-bezier(0.1, 0.7, 0.4, 1) infinite;
+}
+
+.ov-ball-ripple-ring-outer {
+  border: 2px solid rgba(0, 240, 255, 0.75);
+  animation: ov-ball-ripple 1.5s cubic-bezier(0.1, 0.7, 0.4, 1) 0.4s infinite;
+}
+
+@keyframes ov-ball-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.45);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+.ov-ball--latest.ov-ball--four {
+  box-shadow: 0 0 0 3px #00e676, 0 0 16px rgba(0, 230, 118, 0.95);
+}
+.ov-ball--latest.ov-ball--four .ov-ball-ripple-ring {
+  border-color: #00e676;
+}
+.ov-ball--latest.ov-ball--four .ov-ball-ripple-ring-outer {
+  border-color: rgba(0, 230, 118, 0.75);
 }
 
 .ov-ball--latest.ov-ball--six {
-  box-shadow: 0 0 0 4px rgba(224, 64, 251, 0.92), 0 0 20px 6px rgba(213, 0, 249, 0.72);
+  box-shadow: 0 0 0 3px #e040fb, 0 0 18px rgba(224, 64, 251, 0.98);
+}
+.ov-ball--latest.ov-ball--six .ov-ball-ripple-ring {
+  border-color: #e040fb;
+}
+.ov-ball--latest.ov-ball--six .ov-ball-ripple-ring-outer {
+  border-color: rgba(224, 64, 251, 0.8);
 }
 
 .ov-ball--latest.ov-ball--wicket {
-  box-shadow: 0 0 0 4px rgba(255, 59, 59, 0.92), 0 0 20px 6px rgba(255, 18, 18, 0.75);
+  box-shadow: 0 0 0 3px #ff3838, 0 0 18px rgba(255, 56, 56, 0.98);
+}
+.ov-ball--latest.ov-ball--wicket .ov-ball-ripple-ring {
+  border-color: #ff3838;
+}
+.ov-ball--latest.ov-ball--wicket .ov-ball-ripple-ring-outer {
+  border-color: rgba(255, 56, 56, 0.8);
 }
 
 .ov-ball--latest.ov-ball--extra {
-  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.9), 0 0 18px 5px rgba(251, 191, 36, 0.65);
+  box-shadow: 0 0 0 3px #fbbf24, 0 0 16px rgba(251, 191, 36, 0.9);
+}
+.ov-ball--latest.ov-ball--extra .ov-ball-ripple-ring {
+  border-color: #fbbf24;
+}
+.ov-ball--latest.ov-ball--extra .ov-ball-ripple-ring-outer {
+  border-color: rgba(251, 191, 36, 0.75);
 }
 
 .ov-over-total {
@@ -819,28 +944,79 @@
 }
 
 /* ==========================================================================
-   ROW 5: MAGENTA ROLE HEADER BAR (56px)
+   ROW 5: DYNAMIC ROLE HEADER BAR (56px) - Highlights Active Striker in Magenta
    ========================================================================== */
 .ov-role-header {
   height: 56px;
   flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  align-items: center;
-  text-align: center;
-  background: linear-gradient(
-    90deg,
-    var(--ov-magenta-l) 0%,
-    #a8166c 24%,
-    var(--ov-magenta-c) 50%,
-    #a8166c 76%,
-    var(--ov-magenta-r) 100%
-  );
+  align-items: stretch;
   border-bottom: 3px solid var(--ov-divider);
   font-family: var(--font-display);
   font-size: 32px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  background: #040c1b;
+}
+
+.ov-role-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+  position: relative;
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+.ov-role-cell + .ov-role-cell {
+  border-left: 3px solid var(--ov-divider);
+}
+
+.ov-role-cell--dark {
+  background: #040c1b;
+  color: #d1d5db;
+}
+
+.ov-role-cell--striker {
+  background: linear-gradient(90deg, #d81b60 0%, #e91e63 50%, #d81b60 100%);
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 -3px 0 0 #fde047;
+}
+
+.ov-role-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.ov-role-strike-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fde047;
+  color: #0c182a;
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  animation: ov-strike-badge-pop 1.8s ease-in-out infinite;
+}
+
+@keyframes ov-strike-badge-pop {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(253, 224, 71, 0.95);
+  }
 }
 
 /* ==========================================================================
@@ -859,10 +1035,35 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
+  background: linear-gradient(180deg, #071c3e 0%, #05142d 100%);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+  position: relative;
 }
 
 .ov-player-col + .ov-player-col {
   border-left: 3px solid var(--ov-divider);
+}
+
+/* Striker Column Distinct Highlight */
+.ov-player-col--striker {
+  background: linear-gradient(180deg, #0e2f63 0%, #081d42 100%);
+  box-shadow: inset 0 0 36px rgba(0, 229, 255, 0.16), inset 0 3px 0 0 #fde047;
+}
+
+.ov-player-col--striker .ov-player-name {
+  color: #fffb91;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.7), 0 3px 8px rgba(0, 0, 0, 0.7);
+}
+
+.ov-player-col--striker .ov-player-figures {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.ov-player-col--striker .ov-player-subbar {
+  background: #081730;
+  color: #fef08a;
+  border-top-color: rgba(250, 204, 21, 0.35);
 }
 
 .ov-player-main {
@@ -968,11 +1169,56 @@
   white-space: nowrap;
 }
 
+.ov-striker-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ov-striker-label-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #fde047 0%, #eab308 100%);
+  color: #091222;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.45);
+}
+
 .ov-striker-bat {
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
   flex-shrink: 0;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  transform-origin: 32px 32px;
+  animation: ov-bat-blink 1.25s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.95)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+}
+
+@keyframes ov-bat-blink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.95)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    opacity: 0.25;
+    filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.2)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    transform: scale(0.92) rotate(-4deg);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(250, 204, 21, 1)) drop-shadow(0 0 32px rgba(245, 158, 11, 0.95));
+    transform: scale(1.18) rotate(5deg);
+  }
+  75% {
+    opacity: 0.85;
+    transform: scale(1.06) rotate(1deg);
+  }
 }
 
 .ov-out-pill {
@@ -1587,4 +1833,16 @@
 .ov-info-item span:last-child {
   color: #ffffff;
   text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-team-score--pop,
+  .ov-ball--latest,
+  .ov-ball-ripple-ring,
+  .ov-ball-ripple-ring-outer,
+  .ov-striker-bat,
+  .ov-role-strike-badge,
+  .ov-bowler-ball-seam {
+    animation: none !important;
+  }
 }
