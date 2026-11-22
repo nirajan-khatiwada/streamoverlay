@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SoundEventKey, StudioConfig } from '@shared/types';
 
-const DEFAULT_SFX_URLS: Record<SoundEventKey, string> = {
+export const DEFAULT_SFX_URLS: Record<SoundEventKey, string> = {
   four: '/sfx/four.wav',
   six: '/sfx/six.wav',
   wicket: '/sfx/wicket.wav',
@@ -10,15 +10,19 @@ const DEFAULT_SFX_URLS: Record<SoundEventKey, string> = {
   subAlert: '/sfx/sub-alert.wav',
 };
 
+export const DEFAULT_STADIUM_AMBIENT_URL = '/sfx/stadium-ambient.mp3';
+
 /**
  * Low-latency Web Audio API sound engine for OBS Studio Browser Source & Studio previews.
+ * - Plays continuous live stadium crowd background ambience looping seamlessly in real-time.
  * - Preloads built-in mastered WAV assets (and user-uploaded custom SFX overrides).
  * - Falls back to procedural Web Audio synthesis if audio decoding fails.
- * - Respects master mute/volume and per-event channel settings live from StudioConfig.
+ * - Respects master mute/volume, ambient volume, and per-event channel settings live from StudioConfig.
  */
 export function useSoundEngine(config: StudioConfig | null, mutedByPreview = false) {
   const ctxRef = useRef<AudioContext | null>(null);
   const bufferCacheRef = useRef<Map<string, AudioBuffer>>(new Map());
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const [audioBlocked, setAudioBlocked] = useState(false);
 
   const ensureContext = useCallback(async (): Promise<AudioContext | null> => {
@@ -56,10 +60,81 @@ export function useSoundEngine(config: StudioConfig | null, mutedByPreview = fal
     []
   );
 
-  // Unlock AudioContext cleanly on any pointer/key interaction in normal browser tabs
+  // Continuous live stadium crowd background ambience
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!ambientAudioRef.current) {
+      const audio = new Audio();
+      audio.loop = true;
+      audio.preload = 'auto';
+      audio.crossOrigin = 'anonymous';
+      ambientAudioRef.current = audio;
+    }
+
+    const audio = ambientAudioRef.current;
+    const ambientCfg = config?.audio?.stadiumAmbient;
+    const masterEnabled = config?.audio?.masterEnabled ?? true;
+    const masterVol = config?.audio?.masterVolume ?? 0.85;
+    const ambientEnabled = ambientCfg?.enabled ?? true;
+    const ambientVol = ambientCfg?.volume ?? 0.4;
+    const targetUrl = ambientCfg?.customUrl || DEFAULT_STADIUM_AMBIENT_URL;
+
+    try {
+      const targetFull = new URL(targetUrl, window.location.href).href;
+      if (audio.src !== targetFull) {
+        audio.src = targetUrl;
+        audio.load();
+      }
+    } catch {
+      audio.src = targetUrl;
+    }
+
+    const effectiveVolume = Math.min(1, Math.max(0, masterVol * ambientVol));
+    audio.volume = effectiveVolume;
+
+    const shouldPlay =
+      !mutedByPreview && masterEnabled && ambientEnabled && effectiveVolume > 0.001;
+
+    if (shouldPlay) {
+      if (audio.paused) {
+        audio.play().catch(() => {
+          setAudioBlocked(true);
+        });
+      }
+    } else {
+      if (!audio.paused) {
+        audio.pause();
+      }
+    }
+  }, [config?.audio, mutedByPreview]);
+
+  // Clean up ambient audio on unmount
+  useEffect(() => {
+    return () => {
+      if (ambientAudioRef.current) {
+        ambientAudioRef.current.pause();
+        ambientAudioRef.current.src = '';
+      }
+    };
+  }, []);
+
+  // Unlock AudioContext & resume stadium ambience on pointer/key interaction in normal browser tabs
   useEffect(() => {
     const unlock = () => {
       void ensureContext();
+      if (ambientAudioRef.current && ambientAudioRef.current.paused) {
+        const ambientCfg = config?.audio?.stadiumAmbient;
+        const masterEnabled = config?.audio?.masterEnabled ?? true;
+        const ambientEnabled = ambientCfg?.enabled ?? true;
+        const masterVol = config?.audio?.masterVolume ?? 0.85;
+        const ambientVol = ambientCfg?.volume ?? 0.4;
+        const shouldPlay =
+          !mutedByPreview && masterEnabled && ambientEnabled && masterVol * ambientVol > 0.001;
+        if (shouldPlay) {
+          ambientAudioRef.current.play().catch(() => {});
+        }
+      }
     };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
@@ -67,7 +142,7 @@ export function useSoundEngine(config: StudioConfig | null, mutedByPreview = fal
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
     };
-  }, [ensureContext]);
+  }, [config?.audio, ensureContext, mutedByPreview]);
 
   const playSynthFallback = useCallback((ctx: AudioContext, key: SoundEventKey, volume: number) => {
     const now = ctx.currentTime;

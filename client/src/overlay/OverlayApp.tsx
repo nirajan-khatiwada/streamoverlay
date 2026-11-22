@@ -113,7 +113,6 @@ export const OverlayApp: React.FC = () => {
                 <MiddleSection
                   snapshot={snapshot}
                   config={config}
-                  activeSubAlert={visibleSubAlert}
                 />
                 <PlayersSection snapshot={snapshot} />
                 {config.showBottomTicker ? (

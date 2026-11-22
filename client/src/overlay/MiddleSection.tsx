@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { MatchSnapshot, StudioConfig } from '@shared/types';
-import type { SubAlertMessage } from '../hooks/useBroadcastSocket';
 import { PlayerAvatar } from './PlayerAvatar';
 
 interface MiddleSectionProps {
   snapshot: MatchSnapshot;
   config: StudioConfig;
-  activeSubAlert: SubAlertMessage | null;
 }
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -76,29 +74,66 @@ const VsLightningEmblem: React.FC = () => (
   </svg>
 );
 
-export const MiddleSection: React.FC<MiddleSectionProps> = ({
-  snapshot,
-  config,
-  activeSubAlert,
-}) => {
+const SubscriberGoalWidget: React.FC<{
+  config: StudioConfig['subscriberWidget'];
+}> = ({ config }) => {
+  const current = config.count;
+  const goal = Math.max(1, config.goal || 18000000);
+  const start =
+    config.goalInitial > 0 && config.goalInitial < goal ? config.goalInitial : 0;
+  const range = Math.max(1, goal - start);
+  const progressPct = Math.min(100, Math.max(0, ((current - start) / range) * 100));
+  const remaining = Math.max(0, goal - current);
+
+  const channelLabel = config.youtubeChannelTitle || config.youtubeHandle || '@Mythpat';
+  const goalTitle = config.goalTitle || 'SUB GOAL';
+
+  return (
+    <div className="ov-goal-card" role="region" aria-label="Subscriber Goal Progress">
+      <div className="ov-goal-header">
+        <div className="ov-goal-channel">
+          <svg className="ov-goal-yt-icon" viewBox="0 0 24 17" aria-hidden="true">
+            <path
+              d="M23.5 2.6a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.5A3 3 0 0 0 .5 2.6 31 31 0 0 0 0 8.5a31 31 0 0 0 .5 5.9 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 8.5a31 31 0 0 0-.5-5.9ZM9.6 12.1V4.9l6.3 3.6-6.3 3.6Z"
+              fill="#ff0000"
+            />
+          </svg>
+          <span className="ov-goal-handle">{channelLabel}</span>
+          <span className="ov-goal-title-badge">{goalTitle}</span>
+        </div>
+
+        <div className="ov-goal-stats">
+          <span className="ov-goal-current">{current.toLocaleString('en-US')}</span>
+          <span className="ov-goal-slash">/</span>
+          <span className="ov-goal-target">{goal.toLocaleString('en-US')}</span>
+          <span className="ov-goal-pct">{progressPct.toFixed(1)}%</span>
+        </div>
+      </div>
+
+      {/* Loading-Type Broadcast Animated Striped Progress Bar */}
+      <div className="ov-goal-track" aria-hidden="true">
+        <div className="ov-goal-fill" style={{ width: `${progressPct}%` }}>
+          <div className="ov-goal-stripes" />
+          <div className="ov-goal-lead-glow" />
+        </div>
+      </div>
+
+      <div className="ov-goal-subrow">
+        <span className="ov-goal-remaining">
+          {remaining > 0 ? `${remaining.toLocaleString('en-US')} TO GO!` : '★ GOAL REACHED! ★'}
+        </span>
+        <span className="ov-goal-live-pulse">
+          <span className="ov-goal-live-dot" /> LIVE YOUTUBE SYNC
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export const MiddleSection: React.FC<MiddleSectionProps> = ({ snapshot, config }) => {
   const { winProbability, lastWicket, partnership, leftTeam, rightTeam } = snapshot;
-  const { subscriberWidget, vsBanner, donationBar } = config;
+  const { subscriberWidget, vsBanner } = config;
 
-  const [donorIdx, setDonorIdx] = useState(0);
-  const donors = donationBar.entries;
-
-  useEffect(() => {
-    if (donors.length <= 1) {
-      setDonorIdx(0);
-      return;
-    }
-    const timer = window.setInterval(() => {
-      setDonorIdx((prev) => (prev + 1) % donors.length);
-    }, Math.max(2000, donationBar.rotateIntervalMs));
-    return () => window.clearInterval(timer);
-  }, [donors.length, donationBar.rotateIntervalMs]);
-
-  const currentDonor = donors[donorIdx % Math.max(1, donors.length)] ?? null;
   const lastWicketLabel = lastWicket.available
     ? `LAST Wkt: ${lastWicket.formatted}`
     : 'Last Wicket: N/A';
@@ -211,46 +246,10 @@ export const MiddleSection: React.FC<MiddleSectionProps> = ({
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Sub Alert + Donation Strip + Partnership */}
+      {/* RIGHT COLUMN: Live Subscriber Goal Loading Widget + Partnership */}
       <div className="ov-mid-col">
         <div className="ov-mid-upper">
-          <div className="ov-right-mid-upper">
-            <div className="ov-sub-alert-zone">
-              {activeSubAlert ? (
-                <div key={activeSubAlert.id} className="ov-sub-alert-pill">
-                  {activeSubAlert.message}
-                </div>
-              ) : null}
-            </div>
-
-            {donationBar.enabled ? (
-              <div className="ov-donation-strip">
-                <div
-                  className="ov-pay-icon"
-                  style={{ backgroundColor: donationBar.providerColor }}
-                >
-                  {donationBar.providerIconUrl ? (
-                    <img
-                      src={donationBar.providerIconUrl}
-                      alt="Donation provider"
-                      width={48}
-                      height={48}
-                    />
-                  ) : (
-                    <span>{donationBar.providerBadgeText || 'e'}</span>
-                  )}
-                </div>
-                {donationBar.accountNumber ? (
-                  <span className="ov-pay-account">{donationBar.accountNumber}</span>
-                ) : null}
-                {currentDonor ? (
-                  <span key={currentDonor.id} className="ov-pay-donor">
-                    {currentDonor.donorName} {currentDonor.amountText}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+          <SubscriberGoalWidget config={subscriberWidget} />
         </div>
 
         <div className="ov-mid-lower">

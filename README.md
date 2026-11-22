@@ -143,6 +143,15 @@ Users only enter a YouTube handle like **`@Mythpat`**, **`Mythpat`**, a channel 
    - **Optional Official Fallback:** YouTube Data API v3 (`channels?part=statistics`) if the user optionally enters an API key in Studio
    - **Final Fallback:** Public YouTube page abbreviated subscriber text (`17.8M` → `17800000`)
 4. **Live Broadcast Sync:** Sticky provider preference keeps the count smooth; every update pushes `config` over WebSocket and triggers the overlay's vertical rolling `OdometerNumber`.
+5. **Subscriber Goal Loading Bar Widget (`client/src/overlay/MiddleSection.tsx`):**
+   - In place of static eSewa and alert strips, the overlay features an animated broadcast **Subscriber Goal Loading-Type Widget**.
+   - Directly linked to the user's uploaded YouTube channel (e.g. **`@Mythpat`**), reading the live count (`17,834,707`) against the user's customizable target goal (e.g. `18,000,000`).
+   - Features:
+     - Red YouTube badge + channel handle + customizable Goal Badge (e.g. `ROAD TO 18M`).
+     - Live numbers readout: `17,834,707 / 18,000,000` with dynamic percentage pill (e.g. `99.1%`).
+     - **Loading-Type Animated Progress Bar:** Recessed dark track with animated diagonal broadcast stripes continuously sweeping across the fill bar (`@keyframes ov-goal-stripes-move`) and a pulsating glowing leading edge (`@keyframes ov-goal-lead-pulse`).
+     - Subtext showing remaining count (e.g. `165,293 TO GO!`) and green `● LIVE YOUTUBE SYNC` indicator.
+   - Configurable in the Control Studio with preset buttons (`18M Goal`, `20M Goal`, `Next 100K`, `Next 1M`).
 
 ---
 
@@ -158,6 +167,15 @@ Users only enter a YouTube handle like **`@Mythpat`**, **`Mythpat`**, a channel 
   - `six.wav` (sweet-spot crack + sub-bass boom + fanfare + stadium eruption)
   - `wicket.wav` (3-impact timber stump shatter + dramatic sub drop & brass tension + crowd gasp/roar)
   - `over.wav`, `milestone.wav`, `sub-alert.wav`
+- **Continuous Live Stadium Background Ambience (`public/sfx/stadium-ambient.mp3`):**
+  - Continuous looping crowd atmosphere, cheers, and stadium ambience that plays all the time to make viewers feel like they are inside a live cricket stadium.
+  - Automatically loops seamlessly on the OBS overlay (`http://127.0.0.1:3000/overlay`) with hardware-accelerated playback and Web Audio synchronization.
+  - **Live Audio Mixer Controls (`client/src/studio/AudioMixerPanel.tsx`):**
+    - **Enable/Mute Toggle:** Turn live stadium ambience on or off on the fly.
+    - **Continuous Volume Slider:** 0%–100% volume control (defaults to balanced 40% so it sits naturally under commentary and event SFX).
+    - **In-Studio Preview:** One-click audition button with instant playback.
+    - **Custom File Uploader:** Upload any custom stadium crowd WAV/MP3 track, or reset back to default `stadium-ambient.mp3`.
+  - Event stingers (FOUR, SIX, WICKET, milestones) trigger on top of the ambient crowd sound cleanly without interrupting the background loop.
 - **Client Audio Engine (`client/src/hooks/useSoundEngine.ts`):** Uses Web Audio API (`AudioContext` + `decodeAudioData` buffer caching) for zero-latency playback in OBS Chromium, with a procedural Web Audio synth fallback if decoding fails. Studio preview iframe (`/overlay?preview=1`) is muted by default to prevent double-echo alongside OBS, with an optional **"Monitor SFX in Studio"** toggle.
 
 ---

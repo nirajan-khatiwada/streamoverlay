@@ -63,6 +63,10 @@ export const DEFAULT_STUDIO_CONFIG: StudioConfig = {
     youtubeProvider: '',
     youtubeLastSyncedAt: null,
     youtubeApiKey: '',
+    goal: 18000000,
+    goalTitle: 'SUB GOAL',
+    goalInitial: 0,
+    showGoalWidget: true,
   },
   donationBar: {
     enabled: true,
@@ -98,6 +102,11 @@ export const DEFAULT_STUDIO_CONFIG: StudioConfig = {
       over: { enabled: true, volume: 0.55, customUrl: null },
       milestone: { enabled: true, volume: 0.9, customUrl: null },
       subAlert: { enabled: true, volume: 0.65, customUrl: null },
+    },
+    stadiumAmbient: {
+      enabled: true,
+      volume: 0.4,
+      customUrl: null,
     },
   },
 };
@@ -163,6 +172,10 @@ export const studioConfigPatchSchema = z.object({
       youtubeProvider: z.string().max(40).optional(),
       youtubeLastSyncedAt: z.string().max(60).nullable().optional(),
       youtubeApiKey: z.string().max(120).optional(),
+      goal: z.number().int().min(1).max(999999999).optional(),
+      goalTitle: z.string().max(40).optional(),
+      goalInitial: z.number().int().min(0).max(999999999).optional(),
+      showGoalWidget: z.boolean().optional(),
     })
     .optional(),
   donationBar: z
@@ -215,6 +228,13 @@ export const studioConfigPatchSchema = z.object({
           over: sfxChannelSchema.partial().optional(),
           milestone: sfxChannelSchema.partial().optional(),
           subAlert: sfxChannelSchema.partial().optional(),
+        })
+        .optional(),
+      stadiumAmbient: z
+        .object({
+          enabled: z.boolean().optional(),
+          volume: z.number().min(0).max(1).optional(),
+          customUrl: safeUrlOrNull.optional(),
         })
         .optional(),
     })

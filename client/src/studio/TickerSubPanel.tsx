@@ -324,6 +324,123 @@ export const TickerSubPanel: React.FC<TickerSubPanelProps> = ({ config, onPatchC
           </button>
         </div>
 
+        {/* Subscriber Goal Loading-Type Widget Settings (Replaces eSewa) */}
+        <div style={{ marginTop: '16px', padding: '14px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
+          <h4 style={{ margin: '0 0 10px 0', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="20" height="14" viewBox="0 0 24 17" fill="#ef4444" aria-hidden="true">
+              <path d="M23.5 2.6a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.5A3 3 0 0 0 .5 2.6 31 31 0 0 0 0 8.5a31 31 0 0 0 .5 5.9 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 8.5a31 31 0 0 0-.5-5.9ZM9.6 12.1V4.9l6.3 3.6-6.3 3.6Z" />
+            </svg>
+            Subscriber Goal Loading Bar Settings (Replaces eSewa)
+          </h4>
+          <span className="field-hint" style={{ marginBottom: '12px', display: 'block' }}>
+            Sets the target subscriber goal for your connected channel (e.g. <code>@Mythpat</code>). Renders as an animated broadcast loading progress bar on the overlay.
+          </span>
+
+          <div className="form-row">
+            <div className="field">
+              <label htmlFor="goal-target">Target Subscriber Goal</label>
+              <input
+                id="goal-target"
+                type="number"
+                min={1}
+                max={999999999}
+                value={config.subscriberWidget.goal || 18000000}
+                onChange={(e) =>
+                  void onPatchConfig({
+                    subscriberWidget: {
+                      ...config.subscriberWidget,
+                      goal: Math.max(1, Number.parseInt(e.target.value, 10) || 1),
+                    },
+                  })
+                }
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="goal-title">Goal Title / Badge</label>
+              <input
+                id="goal-title"
+                type="text"
+                maxLength={30}
+                value={config.subscriberWidget.goalTitle || 'SUB GOAL'}
+                onChange={(e) =>
+                  void onPatchConfig({
+                    subscriberWidget: {
+                      ...config.subscriberWidget,
+                      goalTitle: e.target.value,
+                    },
+                  })
+                }
+                placeholder="SUB GOAL or ROAD TO 18M"
+              />
+            </div>
+          </div>
+
+          <div className="btn-group" style={{ marginTop: '8px' }}>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() =>
+                void onPatchConfig({
+                  subscriberWidget: {
+                    ...config.subscriberWidget,
+                    goal: 18000000,
+                    goalTitle: 'ROAD TO 18M',
+                  },
+                })
+              }
+            >
+              18M Goal
+            </button>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() =>
+                void onPatchConfig({
+                  subscriberWidget: {
+                    ...config.subscriberWidget,
+                    goal: 20000000,
+                    goalTitle: 'ROAD TO 20M',
+                  },
+                })
+              }
+            >
+              20M Goal
+            </button>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => {
+                const next100k = Math.ceil((config.subscriberWidget.count + 1) / 100000) * 100000;
+                void onPatchConfig({
+                  subscriberWidget: {
+                    ...config.subscriberWidget,
+                    goal: next100k,
+                    goalTitle: `NEXT ${(next100k / 1000).toFixed(0)}K`,
+                  },
+                });
+              }}
+            >
+              Next 100K
+            </button>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => {
+                const next1m = Math.ceil((config.subscriberWidget.count + 1) / 1000000) * 1000000;
+                void onPatchConfig({
+                  subscriberWidget: {
+                    ...config.subscriberWidget,
+                    goal: next1m,
+                    goalTitle: `ROAD TO ${(next1m / 1000000).toFixed(0)}M`,
+                  },
+                });
+              }}
+            >
+              Next 1M
+            </button>
+          </div>
+        </div>
+
         <form onSubmit={(e) => void sendSubAlert(e)} className="form-stack">
           <div className="field">
             <label htmlFor="sub-alert-name">Trigger Live Subscriber Banner Alert (+1 &amp; Chime)</label>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import type { SoundEventKey, StudioConfig } from '@shared/types';
 
 interface AudioMixerPanelProps {
@@ -23,6 +23,9 @@ export const AudioMixerPanel: React.FC<AudioMixerPanelProps> = ({
 }) => {
   const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [uploadingKey, setUploadingKey] = useState<SoundEventKey | null>(null);
+  const [uploadingAmbient, setUploadingAmbient] = useState(false);
+  const [previewingAmbient, setPreviewingAmbient] = useState(false);
+  const ambientPreviewRef = useRef<HTMLAudioElement | null>(null);
 
   const updateChannel = async (
     key: SoundEventKey,
@@ -37,6 +40,20 @@ export const AudioMixerPanel: React.FC<AudioMixerPanelProps> = ({
             ...config.audio.channels[key],
             ...patch,
           },
+        },
+      },
+    });
+  };
+
+  const updateAmbient = async (
+    patch: Partial<StudioConfig['audio']['stadiumAmbient']>
+  ) => {
+    await onPatchConfig({
+      audio: {
+        ...config.audio,
+        stadiumAmbient: {
+          ...config.audio.stadiumAmbient,
+          ...patch,
         },
       },
     });
@@ -72,11 +89,63 @@ export const AudioMixerPanel: React.FC<AudioMixerPanelProps> = ({
     }
   };
 
+  const handleUploadAmbient = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setUploadingAmbient(true);
+    setStatus(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/uploads/audio', { method: 'POST', body: fd });
+      const body = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !body.url) {
+        throw new Error(body.error || 'Audio upload failed.');
+      }
+      await updateAmbient({ customUrl: body.url, enabled: true });
+      setStatus({ kind: 'ok', text: `Loaded custom stadium ambient background sound: "${file.name}".` });
+    } catch (err) {
+      setStatus({
+        kind: 'error',
+        text: err instanceof Error ? err.message : 'Failed to upload custom audio.',
+      });
+    } finally {
+      setUploadingAmbient(false);
+    }
+  };
+
+  const togglePreviewAmbient = () => {
+    if (previewingAmbient && ambientPreviewRef.current) {
+      ambientPreviewRef.current.pause();
+      ambientPreviewRef.current = null;
+      setPreviewingAmbient(false);
+      return;
+    }
+
+    const url = config.audio.stadiumAmbient.customUrl || '/sfx/stadium-ambient.mp3';
+    const audio = new Audio(url);
+    const vol = Math.min(1, Math.max(0, config.audio.masterVolume * config.audio.stadiumAmbient.volume));
+    audio.volume = vol > 0 ? vol : 0.4;
+    ambientPreviewRef.current = audio;
+    setPreviewingAmbient(true);
+
+    audio.play().catch(() => {
+      setPreviewingAmbient(false);
+    });
+
+    audio.onended = () => {
+      setPreviewingAmbient(false);
+      ambientPreviewRef.current = null;
+    };
+  };
+
   return (
     <div className="form-stack">
       <div className="field-hint">
         In OBS Studio, enable <strong>&ldquo;Control audio via OBS&rdquo;</strong> on the Browser Source properties so
-        all automatic FOUR / SIX / WICKET sound effects route cleanly into your OBS Audio Mixer.
+        all live stadium background ambience and automatic event sound effects route cleanly into your OBS Audio Mixer.
       </div>
 
       {status ? (
@@ -100,7 +169,7 @@ export const AudioMixerPanel: React.FC<AudioMixerPanelProps> = ({
               })
             }
           />
-          <span>Enable Automatic SFX on Live Events</span>
+          <span>Enable Broadcast Audio &amp; SFX</span>
         </label>
 
         <div className="field">
@@ -123,7 +192,84 @@ export const AudioMixerPanel: React.FC<AudioMixerPanelProps> = ({
         </div>
       </fieldset>
 
+      {/* Live Stadium Background Ambience (Plays continuously in background) */}
+      <fieldset className="field-fieldset" style={{ border: '2px solid rgba(56, 189, 248, 0.45)', background: 'rgba(8, 28, 68, 0.35)' }}>
+        <legend style={{ color: '#38bdf8', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          🏟️ Live Stadium Background Ambience (Plays Continuously)
+        </legend>
+        <div className="field-hint" style={{ marginBottom: '12px' }}>
+          Continuous live stadium crowd atmosphere, cheers, and ambience that plays in the background all the time to make viewers feel like they are inside the live stadium.
+        </div>
+
+        <div className="sfx-row" style={{ alignItems: 'center' }}>
+          <div>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={config.audio.stadiumAmbient.enabled}
+                onChange={(e) => void updateAmbient({ enabled: e.target.checked })}
+              />
+              <strong>Stadium Crowd Ambience</strong>
+            </label>
+            <div className="field-hint" style={{ marginTop: '3px' }}>
+              {config.audio.stadiumAmbient.customUrl ? 'Custom uploaded background' : 'Live Stadium Ambience (stadium-ambient.mp3)'}
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="vol-stadium-ambient" className="visually-hidden">
+              Stadium Ambience Volume
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                id="vol-stadium-ambient"
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={config.audio.stadiumAmbient.volume}
+                onChange={(e) => void updateAmbient({ volume: Number(e.target.value) })}
+              />
+              <span style={{ minWidth: '45px', fontSize: '13px', fontWeight: 'bold' }}>
+                {Math.round(config.audio.stadiumAmbient.volume * 100)}%
+              </span>
+            </div>
+            <span className="field-hint">Continuous looping crowd noise and stadium murmur</span>
+          </div>
+
+          <div className="btn-group">
+            <button
+              type="button"
+              className={`btn btn--sm ${previewingAmbient ? 'btn--danger' : 'btn--primary'}`}
+              onClick={togglePreviewAmbient}
+            >
+              {previewingAmbient ? 'Stop' : 'Preview'}
+            </button>
+            <label className="btn btn--sm" style={{ cursor: 'pointer' }}>
+              {uploadingAmbient ? '...' : 'Upload'}
+              <input
+                type="file"
+                accept="audio/wav,audio/mpeg,audio/ogg,audio/webm,audio/mp4,.wav,.mp3,.ogg,.m4a"
+                className="visually-hidden"
+                onChange={(e) => void handleUploadAmbient(e)}
+                disabled={uploadingAmbient}
+              />
+            </label>
+            {config.audio.stadiumAmbient.customUrl ? (
+              <button
+                type="button"
+                className="btn btn--sm btn--danger"
+                onClick={() => void updateAmbient({ customUrl: null })}
+              >
+                Reset Default
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </fieldset>
+
       <div className="form-stack">
+        <h4 style={{ margin: '14px 0 4px 0', color: '#cbd5e1' }}>Event Stinger Sound Effects (FOUR, SIX, WICKET)</h4>
         {SOUND_CHANNELS.map(({ key, label, desc }) => {
           const ch = config.audio.channels[key];
           return (

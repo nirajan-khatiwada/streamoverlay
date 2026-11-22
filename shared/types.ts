@@ -287,6 +287,12 @@ export interface SfxChannelConfig {
   customUrl: string | null;
 }
 
+export interface StadiumAmbientConfig {
+  enabled: boolean;
+  volume: number; // 0..1
+  customUrl: string | null;
+}
+
 export interface StudioConfig {
   pollIntervalMs: number;
   overlayViewMode: OverlayViewMode;
@@ -325,6 +331,10 @@ export interface StudioConfig {
     youtubeProvider: string;
     youtubeLastSyncedAt: string | null;
     youtubeApiKey: string;
+    goal: number;
+    goalTitle: string;
+    goalInitial: number;
+    showGoalWidget: boolean;
   };
   donationBar: {
     enabled: boolean;
@@ -344,6 +354,7 @@ export interface StudioConfig {
     masterEnabled: boolean;
     masterVolume: number; // 0..1
     channels: Record<SoundEventKey, SfxChannelConfig>;
+    stadiumAmbient: StadiumAmbientConfig;
   };
 }
 
