@@ -261,4 +261,67 @@ describe('CrexParser — Limited Overs 2nd Innings Chase, Toss, Odds & Tokens', 
     expect(liveTest?.crexUrl).toContain('-12JM');
     expect(parseCrexMatchInput(liveTest!.crexUrl).matchKey).toBe('12JM');
   });
+
+  it('marks dismissed batsman isOut=true (B&W state) from Crex t.p * flag or lastWicket match until replaced', () => {
+    const outSnap = buildMatchSnapshot({
+      matchKey: 'WKT1',
+      sourceUrl: 'https://crex.com/cricket-live-score/ind-vs-nz-WKT1',
+      sv3: {
+        i: '4/0.1',
+        a: 'R.O',
+        j: '42/1(5.2',
+        B: '^2',
+        p: '4W3*.4W1', // `*` in `t.p` is Crex's `ot1=1` OUT flag!
+        q: '18.14*',
+        r: '2.1',
+        s: '22.18',
+        t: '3.0',
+        b: 'AJ',
+        c: '14.8.1',
+        x: '4W3.18.14.42.32.2.AJ',
+        fo: 'T20',
+      },
+      sc4: [],
+      iv4: null,
+      meta: null,
+      ballFeeds: [],
+      entities: MOCK_ENTITIES,
+    });
+
+    expect(outSnap.batsmen[0]?.fkey).toBe('4W3');
+    expect(outSnap.batsmen[0]?.isOut).toBe(true);
+    expect(outSnap.batsmen[0]?.isStriker).toBe(false);
+    expect(outSnap.batsmen[1]?.fkey).toBe('4W1');
+    expect(outSnap.batsmen[1]?.isOut).toBe(false);
+
+    // Once new batsman `EW` replaces `4W3` in `t.p`, the new batsman is in full color (`isOut: false`)
+    const nextSnap = buildMatchSnapshot({
+      matchKey: 'WKT1',
+      sourceUrl: 'https://crex.com/cricket-live-score/ind-vs-nz-WKT1',
+      sv3: {
+        i: '4/0.1',
+        a: 'R.O',
+        j: '42/1(5.2',
+        B: 'B',
+        p: 'EW.4W1',
+        q: '0.0*',
+        r: '0.0',
+        s: '22.18',
+        t: '3.0',
+        b: 'AJ',
+        c: '14.8.1',
+        x: '4W3.18.14.42.32.2.AJ',
+        fo: 'T20',
+      },
+      sc4: [],
+      iv4: null,
+      meta: null,
+      ballFeeds: [],
+      entities: MOCK_ENTITIES,
+    });
+
+    expect(nextSnap.batsmen[0]?.fkey).toBe('EW');
+    expect(nextSnap.batsmen[0]?.isOut).toBe(false);
+    expect(nextSnap.batsmen[0]?.isStriker).toBe(true);
+  });
 });

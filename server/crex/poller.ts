@@ -302,10 +302,51 @@ export class MatchOrchestrator extends EventEmitter {
     base.updatedAt = new Date().toISOString();
 
     if (outcome === 'BALL') {
+      // If a batsman was just out in the previous step, bring in the new incoming batsman now!
+      const outIdx = base.batsmen.findIndex((b) => b?.isOut);
+      if (outIdx >= 0) {
+        const target = base.batsmen[outIdx];
+        const other = base.batsmen[outIdx === 0 ? 1 : 0];
+        if (target) {
+          const nextUp = base.yetToBat.shift();
+          target.fkey = nextUp?.fkey || `NEW_${Date.now()}`;
+          target.name = nextUp?.name || 'New Batsman';
+          target.shortName = nextUp?.shortName || 'NEW BATTER';
+          target.photoUrl = `/api/proxy-image?kind=player&key=${encodeURIComponent(target.fkey)}`;
+          target.runs = 0;
+          target.balls = 0;
+          target.fours = 0;
+          target.sixes = 0;
+          target.strikeRate = '0.00';
+          target.isOut = false;
+          target.isStriker = !other?.isStriker;
+        }
+      }
       base.centerBadge = { text: 'BALL', tone: 'ball', rawCode: 'B' };
       this.currentSnapshot = base;
       this.emit('snapshot', base);
       return base;
+    }
+
+    // If a dismissed batsman is still displayed in B&W from the prior wicket, replace them now as the next delivery happens
+    const prevOutIdx = base.batsmen.findIndex((b) => b?.isOut);
+    if (prevOutIdx >= 0) {
+      const target = base.batsmen[prevOutIdx];
+      const other = base.batsmen[prevOutIdx === 0 ? 1 : 0];
+      if (target) {
+        const nextUp = base.yetToBat.shift();
+        target.fkey = nextUp?.fkey || `NEW_${Date.now()}`;
+        target.name = nextUp?.name || 'New Batsman';
+        target.shortName = nextUp?.shortName || 'NEW BATTER';
+        target.photoUrl = `/api/proxy-image?kind=player&key=${encodeURIComponent(target.fkey)}`;
+        target.runs = 0;
+        target.balls = 0;
+        target.fours = 0;
+        target.sixes = 0;
+        target.strikeRate = '0.00';
+        target.isOut = false;
+        target.isStriker = !other?.isStriker;
+      }
     }
 
     // Parse current score & overs
@@ -378,18 +419,9 @@ export class MatchOrchestrator extends EventEmitter {
           formatted: `${striker.shortName} ${striker.runs} (${striker.balls})`,
         };
         base.partnership = { available: true, runs: 0, balls: 0, formatted: '0 (0)' };
-        const nextUp = base.yetToBat.shift();
-        if (nextUp) {
-          striker.fkey = nextUp.fkey;
-          striker.name = nextUp.name;
-          striker.shortName = nextUp.shortName;
-          striker.photoUrl = `/api/proxy-image?kind=player&key=${encodeURIComponent(nextUp.fkey)}`;
-        }
-        striker.runs = 0;
-        striker.balls = 0;
-        striker.fours = 0;
-        striker.sixes = 0;
-        striker.strikeRate = '0.00';
+        // Keep dismissed batsman visible in B&W (`isOut: true`) until the new batter walks in on the next ball!
+        striker.isOut = true;
+        striker.isStriker = false;
       } else {
         base.partnership.available = true;
         base.partnership.runs += addedRuns;
@@ -397,11 +429,13 @@ export class MatchOrchestrator extends EventEmitter {
         base.partnership.formatted = `${base.partnership.runs} (${base.partnership.balls})`;
       }
 
-      // Rotate strike on odd runs or over end
-      const shouldSwap = (addedRuns % 2 === 1 && !isExtra) !== (!isExtra && ovBalls === 0);
-      if (shouldSwap && nonStriker) {
-        striker.isStriker = false;
-        nonStriker.isStriker = true;
+      // Rotate strike on odd runs or over end (only if neither batter is currently out)
+      if (!isWicket) {
+        const shouldSwap = (addedRuns % 2 === 1 && !isExtra) !== (!isExtra && ovBalls === 0);
+        if (shouldSwap && nonStriker) {
+          striker.isStriker = false;
+          nonStriker.isStriker = true;
+        }
       }
     }
 
@@ -620,6 +654,7 @@ export class MatchOrchestrator extends EventEmitter {
           sixes: 1,
           strikeRate: '115.38',
           isStriker: false,
+          isOut: false,
           isImpact: false,
           photoUrl: '/api/proxy-image?kind=player&key=15K',
           jerseyUrl: '/api/proxy-image?kind=jersey-limited&key=O',
@@ -634,6 +669,7 @@ export class MatchOrchestrator extends EventEmitter {
           sixes: 0,
           strikeRate: '142.86',
           isStriker: true,
+          isOut: false,
           isImpact: false,
           photoUrl: '/api/proxy-image?kind=player&key=O5',
           jerseyUrl: '/api/proxy-image?kind=jersey-limited&key=O',
@@ -749,6 +785,36 @@ export class MatchOrchestrator extends EventEmitter {
         ballFeeds: this.lastBallFeeds,
         entities,
       });
+
+      // If Crex temporarily clears a dismissed batter's slot in `sv3.p` before the new batter arrives,
+      // retain the dismissed batter in that slot in B&W (`isOut: true`) until the new batter's key appears.
+      const prevSnap = this.currentSnapshot;
+      if (
+        prevSnap &&
+        prevSnap.matchKey === snapshot.matchKey &&
+        prevSnap.inning === snapshot.inning &&
+        snapshot.status === 'live'
+      ) {
+        for (const slotIdx of [0, 1] as const) {
+          if (!snapshot.batsmen[slotIdx]) {
+            const prevBat = prevSnap.batsmen[slotIdx];
+            const otherCurr = snapshot.batsmen[slotIdx === 0 ? 1 : 0];
+            if (
+              prevBat &&
+              prevBat.fkey !== otherCurr?.fkey &&
+              (prevBat.isOut ||
+                (snapshot.lastWicket.available && snapshot.lastWicket.playerFkey === prevBat.fkey) ||
+                snapshot.centerBadge.tone === 'wicket')
+            ) {
+              snapshot.batsmen[slotIdx] = {
+                ...prevBat,
+                isOut: true,
+                isStriker: false,
+              };
+            }
+          }
+        }
+      }
 
       const events = this.detector.evaluate(snapshot);
       this.currentSnapshot = snapshot;

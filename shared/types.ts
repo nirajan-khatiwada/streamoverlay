@@ -45,6 +45,7 @@ export interface BatsmanState {
   sixes: number;
   strikeRate: string;
   isStriker: boolean;
+  isOut: boolean;
   isImpact: boolean;
   photoUrl: string;
   jerseyUrl: string;

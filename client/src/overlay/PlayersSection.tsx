@@ -93,13 +93,14 @@ const BatsmanCard: React.FC<{
   }
 
   return (
-    <div className="ov-player-col">
+    <div className={`ov-player-col ${batsman.isOut ? 'ov-player-col--out' : ''}`}>
       <div className="ov-player-main">
         <PlayerAvatar
           playerKey={batsman.fkey}
           name={batsman.name}
           photoUrl={batsman.photoUrl}
           jerseyUrl={batsman.jerseyUrl}
+          isOut={batsman.isOut}
         />
         <div className="ov-player-info">
           <div className="ov-player-name">{batsman.shortName}</div>
@@ -107,7 +108,13 @@ const BatsmanCard: React.FC<{
             <span className="ov-player-figures">
               {batsman.runs} ({batsman.balls})
             </span>
-            {batsman.isStriker ? <StrikerBatIcon /> : null}
+            {batsman.isOut ? (
+              <span className="ov-out-pill" aria-label="Batsman out">
+                OUT
+              </span>
+            ) : batsman.isStriker ? (
+              <StrikerBatIcon />
+            ) : null}
           </div>
         </div>
       </div>

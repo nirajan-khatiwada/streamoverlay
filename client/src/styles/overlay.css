@@ -883,6 +883,12 @@
   flex-shrink: 0;
   overflow: hidden;
   animation: ov-player-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: filter 0.45s ease, opacity 0.45s ease;
+}
+
+.ov-avatar--out {
+  filter: grayscale(100%) contrast(1.08) brightness(0.84);
+  opacity: 0.9;
 }
 
 .ov-avatar--compact {
@@ -967,6 +973,28 @@
   height: 54px;
   flex-shrink: 0;
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+}
+
+.ov-out-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 16px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ef1a24 0%, #b90b13 100%);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  box-shadow: 0 3px 12px rgba(220, 20, 28, 0.55);
+  animation: ov-badge-pop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ov-player-col--out .ov-player-name,
+.ov-player-col--out .ov-player-figures {
+  color: #cbd5e1;
 }
 
 .ov-player-subbar {

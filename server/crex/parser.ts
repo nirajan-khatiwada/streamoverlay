@@ -1266,80 +1266,12 @@ export function buildMatchSnapshot(bundle: CrexRawBundle): MatchSnapshot {
     statusBannerText = `DAY ${testDay}${sess}${tossText ? ` · ${tossText}` : ''}`;
   }
 
-  // 8. Parse Batsmen (`p`, `q`, `r`, `s`, `t`)
-  const pParts = String(s.p ?? '').split('.');
-  const buildBatsman = (
-    rawKey: string | undefined,
-    rawScore: unknown,
-    rawBounds: unknown
-  ): BatsmanState | null => {
-    const key = (rawKey ?? '').replace(/\*/g, '').trim();
-    if (!key) return null;
-    const scoreStr = String(rawScore ?? '0.0');
-    const isStriker = scoreStr.includes('*');
-    const scoreParts = scoreStr.replace(/\*/g, '').split('.');
-    const runs = Number.parseInt(scoreParts[0] ?? '0', 10) || 0;
-    const balls = Number.parseInt(scoreParts[1] ?? '0', 10) || 0;
-    const boundParts = String(rawBounds ?? '0.0').split('.');
-    const fours = Number.parseInt(boundParts[0] ?? '0', 10) || 0;
-    const sixes = Number.parseInt(boundParts[1] ?? '0', 10) || 0;
-    const isImpact = boundParts[4] === '1';
-    const sr = balls > 0 ? ((runs / balls) * 100).toFixed(2) : '0.00';
-    const name = entities.players[key]?.n ?? key;
-
-    return {
-      fkey: key,
-      name,
-      shortName: formatPlayerShortName(name),
-      runs,
-      balls,
-      fours,
-      sixes,
-      strikeRate: sr,
-      isStriker,
-      isImpact,
-      photoUrl: urls.playerPhoto(key),
-      jerseyUrl: urls.jersey(battingTeamFkey),
-    };
-  };
-
-  const bat1 = buildBatsman(pParts[0], s.q, s.r);
-  const bat2 = buildBatsman(pParts[1], s.s, s.t);
-
-  // 9. Parse Current Bowler (`b`, `c`) + Scorecards (`sc4`)
+  // 8. Parse Current Bowler (`b`, `c`) + Scorecards (`sc4`) + Last Wicket (`x`) first
+  // so dismissed batsmen still shown in `sv3.p` are reliably flagged `isOut: true`.
   const allInnings = parseScorecards(sc4, entities, format, ballsPerOver);
   const currentInningsScorecard =
     allInnings[inning - 1] ?? allInnings[allInnings.length - 1] ?? null;
 
-  let bowler: BowlerState | null = null;
-  const bowlerKey = String(s.b ?? '').trim();
-  if (bowlerKey) {
-    const cParts = String(s.c ?? '0.0.0').split('.');
-    const runsConceded = Number.parseInt(cParts[0] ?? '0', 10) || 0;
-    const ballsBowled = Number.parseInt(cParts[1] ?? '0', 10) || 0;
-    const wickets = Number.parseInt(cParts[2] ?? '0', 10) || 0;
-    const isImpact = cParts[4] === '1';
-    const overs = `${Math.floor(ballsBowled / ballsPerOver)}.${ballsBowled % ballsPerOver}`;
-    const econ = ballsBowled > 0 ? ((runsConceded / ballsBowled) * ballsPerOver).toFixed(2) : '0.00';
-    const name = entities.players[bowlerKey]?.n ?? bowlerKey;
-    const scBowler = currentInningsScorecard?.bowlers.find((b) => b.fkey === bowlerKey);
-
-    bowler = {
-      fkey: bowlerKey,
-      name,
-      shortName: formatPlayerShortName(name),
-      wickets,
-      runsConceded,
-      overs,
-      economy: econ,
-      maidens: scBowler?.maidens ?? 0,
-      isImpact,
-      photoUrl: urls.playerPhoto(bowlerKey),
-      jerseyUrl: urls.jersey(bowlingTeamFkey),
-    };
-  }
-
-  // 10. Parse Last Wicket (`x`) & Partnership (`pb` + `x`)
   const xParts = typeof s.x === 'string' && s.x.trim() ? s.x.split('.') : [];
   const hasWicket = (currentScore?.wickets ?? 0) > 0 && xParts.length >= 3 && Boolean(xParts[0]);
   let lastWicket: LastWicketInfo = {
@@ -1372,6 +1304,91 @@ export function buildMatchSnapshot(bundle: CrexRawBundle): MatchSnapshot {
       formatted: `${lwShort} ${lwRuns} (${lwBalls})`,
     };
   }
+
+  // 9. Parse Batsmen (`p`, `q`, `r`, `s`, `t`)
+  // In Crex 18-es2015: `*` in `t.p` sets `ot1`/`ot2` (batsman OUT flag),
+  // while `*` in `t.q`/`t.s` sets `os1`/`os2` (on-strike flag).
+  const pParts = String(s.p ?? '').split('.');
+  const dismissedKeysInInning = new Set(
+    (currentInningsScorecard?.batters ?? [])
+      .filter((b) => !b.isNotOut)
+      .map((b) => b.fkey)
+  );
+
+  const buildBatsman = (
+    rawKey: string | undefined,
+    rawScore: unknown,
+    rawBounds: unknown
+  ): BatsmanState | null => {
+    const isOutFlag = Boolean(rawKey && rawKey.includes('*'));
+    const key = (rawKey ?? '').replace(/\*/g, '').trim();
+    if (!key) return null;
+    const scoreStr = String(rawScore ?? '0.0');
+    const isOut =
+      isOutFlag ||
+      (lastWicket.available && lastWicket.playerFkey === key) ||
+      dismissedKeysInInning.has(key);
+    const isStriker = !isOut && scoreStr.includes('*');
+    const scoreParts = scoreStr.replace(/\*/g, '').split('.');
+    const runs = Number.parseInt(scoreParts[0] ?? '0', 10) || 0;
+    const balls = Number.parseInt(scoreParts[1] ?? '0', 10) || 0;
+    const boundParts = String(rawBounds ?? '0.0').split('.');
+    const fours = Number.parseInt(boundParts[0] ?? '0', 10) || 0;
+    const sixes = Number.parseInt(boundParts[1] ?? '0', 10) || 0;
+    const isImpact = boundParts[4] === '1';
+    const sr = balls > 0 ? ((runs / balls) * 100).toFixed(2) : '0.00';
+    const name = entities.players[key]?.n ?? key;
+
+    return {
+      fkey: key,
+      name,
+      shortName: formatPlayerShortName(name),
+      runs,
+      balls,
+      fours,
+      sixes,
+      strikeRate: sr,
+      isStriker,
+      isOut,
+      isImpact,
+      photoUrl: urls.playerPhoto(key),
+      jerseyUrl: urls.jersey(battingTeamFkey),
+    };
+  };
+
+  const bat1 = buildBatsman(pParts[0], s.q, s.r);
+  const bat2 = buildBatsman(pParts[1], s.s, s.t);
+
+  // 10. Parse Current Bowler (`b`, `c`)
+  let bowler: BowlerState | null = null;
+  const bowlerKey = String(s.b ?? '').trim();
+  if (bowlerKey) {
+    const cParts = String(s.c ?? '0.0.0').split('.');
+    const runsConceded = Number.parseInt(cParts[0] ?? '0', 10) || 0;
+    const ballsBowled = Number.parseInt(cParts[1] ?? '0', 10) || 0;
+    const wickets = Number.parseInt(cParts[2] ?? '0', 10) || 0;
+    const isImpact = cParts[4] === '1';
+    const overs = `${Math.floor(ballsBowled / ballsPerOver)}.${ballsBowled % ballsPerOver}`;
+    const econ = ballsBowled > 0 ? ((runsConceded / ballsBowled) * ballsPerOver).toFixed(2) : '0.00';
+    const name = entities.players[bowlerKey]?.n ?? bowlerKey;
+    const scBowler = currentInningsScorecard?.bowlers.find((b) => b.fkey === bowlerKey);
+
+    bowler = {
+      fkey: bowlerKey,
+      name,
+      shortName: formatPlayerShortName(name),
+      wickets,
+      runsConceded,
+      overs,
+      economy: econ,
+      maidens: scBowler?.maidens ?? 0,
+      isImpact,
+      photoUrl: urls.playerPhoto(bowlerKey),
+      jerseyUrl: urls.jersey(bowlingTeamFkey),
+    };
+  }
+
+  // Partnership (`pb` + `x`)
 
   const pbExtra = /^\d+$/.test(String(s.pb ?? '').trim()) ? Number.parseInt(String(s.pb), 10) : 0;
   let partnership: PartnershipInfo = {

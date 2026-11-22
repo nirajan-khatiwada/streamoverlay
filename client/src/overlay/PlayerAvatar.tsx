@@ -6,6 +6,7 @@ interface PlayerAvatarProps {
   photoUrl: string;
   jerseyUrl: string;
   compact?: boolean;
+  isOut?: boolean;
   className?: string;
 }
 
@@ -15,12 +16,20 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
   photoUrl,
   jerseyUrl,
   compact = false,
+  isOut = false,
   className = '',
 }) => {
   return (
     <div
       key={playerKey}
-      className={`ov-avatar ${compact ? 'ov-avatar--compact' : ''} ${className}`.trim()}
+      className={[
+        'ov-avatar',
+        compact ? 'ov-avatar--compact' : '',
+        isOut ? 'ov-avatar--out' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <img
         src={jerseyUrl}
