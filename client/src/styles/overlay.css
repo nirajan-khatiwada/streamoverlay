@@ -1,0 +1,1562 @@
+/* ==========================================================================
+   CREX OBS BROADCAST OVERLAY — LOCKED 1920x1080 VIRTUAL STAGE
+   Scales cleanly to 1280x720, 1920x1080, 2560x1440 OBS Browser Sources
+   ========================================================================== */
+
+.overlay-viewport {
+  width: 100vw;
+  height: 100vh;
+  background: #000000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.overlay-stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  flex-shrink: 0;
+  transform-origin: center center;
+  background: radial-gradient(ellipse at 50% 25%, #0e326d 0%, #081e46 48%, #041026 100%);
+  color: #ffffff;
+  font-family: var(--font-broadcast);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Waiting / Empty State */
+.overlay-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+  padding: 80px;
+}
+
+.overlay-empty-title {
+  font-family: var(--font-display);
+  font-size: 56px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.overlay-empty-sub {
+  font-family: var(--font-ui);
+  font-size: 26px;
+  color: #a9c4eb;
+  max-width: 960px;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   ROW 1: TOP HEADER (220px)
+   ========================================================================== */
+.ov-top-header {
+  height: 220px;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 470px 1fr;
+  align-items: center;
+  padding: 0 22px;
+  background: linear-gradient(180deg, #0b2a5e 0%, #071b3e 55%, #05142e 100%);
+  border-bottom: 3px solid var(--ov-divider);
+  position: relative;
+  z-index: 5;
+}
+
+.ov-team-side {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  min-width: 0;
+}
+
+.ov-team-side--right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.ov-team-badge {
+  width: 176px;
+  height: 176px;
+  flex-shrink: 0;
+  border-radius: 22px;
+  border: 5px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 2px 6px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.ov-team-badge--left {
+  background: radial-gradient(circle at 35% 30%, #f52229 0%, #d40a10 70%, #9f050a 100%);
+}
+
+.ov-team-badge--right {
+  background: radial-gradient(circle at 35% 30%, #1597ef 0%, #0073c7 70%, #004e92 100%);
+}
+
+.ov-team-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+}
+
+.ov-team-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ov-team-short {
+  font-family: var(--font-display);
+  font-size: 52px;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ov-team-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.ov-team-side--right .ov-team-score-row {
+  justify-content: flex-end;
+}
+
+.ov-team-score {
+  font-family: var(--font-display);
+  font-size: 76px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  white-space: nowrap;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+}
+
+.ov-team-score--compact {
+  font-size: 54px;
+}
+
+.ov-team-overs {
+  font-family: var(--font-display);
+  font-size: 42px;
+  line-height: 1;
+  color: #e6f0ff;
+  white-space: nowrap;
+}
+
+/* Center Event Box */
+.ov-center-box {
+  width: 452px;
+  height: 148px;
+  margin: 0 auto;
+  background: #03060c;
+  border: 2px solid #2b4266;
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 16px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 18px;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ov-center-box--four {
+  border-color: #00d43b;
+  box-shadow: inset 0 0 28px rgba(0, 200, 50, 0.22), 0 0 18px rgba(0, 200, 50, 0.35);
+}
+
+.ov-center-box--six {
+  border-color: #df33ff;
+  box-shadow: inset 0 0 28px rgba(213, 0, 249, 0.25), 0 0 18px rgba(213, 0, 249, 0.4);
+}
+
+.ov-center-box--wicket {
+  border-color: #ff2929;
+  box-shadow: inset 0 0 32px rgba(255, 18, 18, 0.3), 0 0 20px rgba(255, 18, 18, 0.45);
+}
+
+.ov-center-box--extra {
+  border-color: #fbbf24;
+  box-shadow: inset 0 0 22px rgba(251, 191, 36, 0.2);
+}
+
+.ov-center-text {
+  font-family: var(--font-display);
+  font-size: 72px;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  text-transform: uppercase;
+  animation: ov-badge-pop 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ov-center-text--medium {
+  font-size: 52px;
+}
+
+.ov-center-text--small {
+  font-size: 36px;
+}
+
+.ov-center-subtext {
+  margin-top: 6px;
+  font-family: var(--font-broadcast);
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffd600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+@keyframes ov-badge-pop {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   ROW 2: CRR / RRR / TOSS / CHASE STRIP (66px)
+   ========================================================================== */
+.ov-status-strip {
+  height: 66px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  background: linear-gradient(90deg, #061b40 0%, #0b2b63 50%, #061b40 100%);
+  border-bottom: 3px solid var(--ov-divider);
+}
+
+.ov-rates-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  font-family: var(--font-display);
+  font-size: 38px;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.ov-pp-pill {
+  font-family: var(--font-broadcast);
+  font-size: 24px;
+  font-weight: 700;
+  background: #ffd600;
+  color: #07142b;
+  padding: 2px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.ov-status-right {
+  font-family: var(--font-display);
+  font-size: 38px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 68%;
+  text-align: right;
+}
+
+.ov-hl-gold {
+  color: var(--ov-gold);
+}
+
+.ov-hl-cyan {
+  color: var(--ov-cyan);
+}
+
+/* ==========================================================================
+   ROW 3: BALL-BY-BALL OVERS TIMELINE + BRAND BLOCK (76px)
+   ========================================================================== */
+.ov-overs-strip {
+  height: 76px;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 412px;
+  border-bottom: 3px solid var(--ov-divider);
+  background: #040c1b;
+}
+
+.ov-overs-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 0 22px;
+  overflow: hidden;
+}
+
+.ov-over-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.ov-over-label {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  margin-right: 4px;
+}
+
+.ov-ball-list {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ov-ball {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.ov-ball--long {
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.ov-ball--dot,
+.ov-ball--run {
+  background: #ffffff;
+  color: #060a14;
+}
+
+.ov-ball--pending {
+  background: #ffffff;
+  color: transparent;
+}
+
+.ov-ball--four {
+  background: #00c832;
+  color: #ffffff;
+}
+
+.ov-ball--six {
+  background: #d500f9;
+  color: #ffffff;
+}
+
+.ov-ball--wicket {
+  background: #ff1212;
+  color: #ffffff;
+}
+
+.ov-ball--extra {
+  background: #ffe082;
+  color: #09111f;
+}
+
+/* Luminous outer ring on ONLY the single latest bowled delivery */
+.ov-ball--latest {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.85), 0 0 18px 6px rgba(0, 230, 118, 0.65);
+}
+
+.ov-ball--latest.ov-ball--six {
+  box-shadow: 0 0 0 4px rgba(224, 64, 251, 0.92), 0 0 20px 6px rgba(213, 0, 249, 0.72);
+}
+
+.ov-ball--latest.ov-ball--wicket {
+  box-shadow: 0 0 0 4px rgba(255, 59, 59, 0.92), 0 0 20px 6px rgba(255, 18, 18, 0.75);
+}
+
+.ov-ball--latest.ov-ball--extra {
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.9), 0 0 18px 5px rgba(251, 191, 36, 0.65);
+}
+
+.ov-over-total {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: #ffffff;
+  margin-left: 2px;
+}
+
+.ov-brand-block {
+  height: 100%;
+  border-left: 3px solid var(--ov-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 0 18px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--brand-bg, #c91422) 0%, #8e0b16 100%);
+}
+
+.ov-brand-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ov-brand-monogram {
+  font-family: var(--font-stinger);
+  font-size: 38px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  padding: 4px 10px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  line-height: 1;
+}
+
+.ov-brand-lines {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.ov-brand-line1 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.08em;
+}
+
+.ov-brand-line2 {
+  font-family: var(--font-broadcast);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ffe8ea;
+}
+
+/* ==========================================================================
+   ROW 4: MIDDLE 3-COLUMN SECTION (216px)
+   ========================================================================== */
+.ov-middle-row {
+  height: 216px;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 650px 620px 650px;
+  border-bottom: 3px solid var(--ov-divider);
+  background: linear-gradient(180deg, #071e46 0%, #051634 100%);
+}
+
+.ov-mid-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ov-mid-col--center {
+  border-left: 3px solid var(--ov-divider);
+  border-right: 3px solid var(--ov-divider);
+}
+
+.ov-mid-upper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.ov-mid-lower {
+  height: 70px;
+  flex-shrink: 0;
+  border-top: 3px solid var(--ov-divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Left Col: Subscriber Odometer + YouTube CTA */
+.ov-sub-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ov-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ov-sub-pill {
+  background: #ffffff;
+  color: #061224;
+  font-family: var(--font-display);
+  font-size: 32px;
+  padding: 4px 20px;
+  border-radius: 999px;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+}
+
+.ov-odometer {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 1;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.ov-odo-slot {
+  display: inline-block;
+  height: 1.05em;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.ov-odo-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ov-odo-digit {
+  height: 1.05em;
+  line-height: 1.05em;
+  text-align: center;
+}
+
+.ov-odo-sep {
+  display: inline-block;
+  margin: 0 1px;
+}
+
+.ov-sub-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #e62117;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 5px 16px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Win Probability Split Bar */
+.ov-winprob-bar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  font-family: var(--font-display);
+  font-size: 29px;
+  letter-spacing: 0.02em;
+}
+
+.ov-winprob-bar--three {
+  font-size: 23px;
+}
+
+.ov-winprob-seg {
+  height: 100%;
+  min-width: max-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 14px;
+  transition: flex-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ov-winprob-seg--left {
+  background: linear-gradient(180deg, #16b824 0%, #0f8e1a 100%);
+  color: #ffffff;
+}
+
+.ov-winprob-seg--draw {
+  background: linear-gradient(180deg, #475569 0%, #334155 100%);
+  color: #ffffff;
+}
+
+.ov-winprob-seg--right {
+  background: linear-gradient(180deg, #cc131d 0%, #990a12 100%);
+  color: #ffffff;
+}
+
+/* Center Col: VS Captains Graphic + Last Wicket Bar */
+.ov-vs-panel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: radial-gradient(circle at 50% 45%, #0d4528 0%, #052213 65%, #03140b 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px;
+  overflow: hidden;
+}
+
+.ov-vs-custom-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ov-vs-captain {
+  width: 190px;
+  height: 140px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ov-vs-bolt {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 142px;
+  height: 132px;
+  z-index: 4;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.75));
+}
+
+.ov-last-wkt-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #27589c 0%, #1a3e72 100%);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-broadcast);
+  font-size: 27px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ov-last-wkt-inner {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.ov-last-wkt-inner--scroll {
+  padding-left: 100%;
+  animation: ov-lw-marquee 14s linear infinite;
+}
+
+@keyframes ov-lw-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Right Col: Sub Alert + Donation Bar + Partnership */
+.ov-right-mid-upper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ov-sub-alert-zone {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ov-sub-alert-pill {
+  font-family: var(--font-broadcast);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-shadow: 0 0 14px rgba(255, 110, 199, 0.85), 0 2px 6px rgba(0, 0, 0, 0.8);
+  animation: ov-alert-slide 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ov-alert-slide {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ov-donation-strip {
+  height: 76px;
+  border-top: 2px solid rgba(142, 181, 227, 0.45);
+  background: rgba(3, 12, 28, 0.72);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  overflow: hidden;
+}
+
+.ov-pay-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.ov-pay-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ov-pay-account {
+  background: #ffffff;
+  color: #09111f;
+  font-family: var(--font-display);
+  font-size: 24px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ov-pay-donor {
+  font-family: var(--font-broadcast);
+  font-size: 25px;
+  font-weight: 700;
+  color: #b7ff4d;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.ov-pship-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #081e45 0%, #05142f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   ROW 5: MAGENTA ROLE HEADER BAR (56px)
+   ========================================================================== */
+.ov-role-header {
+  height: 56px;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(
+    90deg,
+    var(--ov-magenta-l) 0%,
+    #a8166c 24%,
+    var(--ov-magenta-c) 50%,
+    #a8166c 76%,
+    var(--ov-magenta-r) 100%
+  );
+  border-bottom: 3px solid var(--ov-divider);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   ROW 6: BOTTOM 3-COLUMN LIVE PLAYERS ROW (flex: 1)
+   ========================================================================== */
+.ov-players-row {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: linear-gradient(180deg, #08204c 0%, #061737 100%);
+}
+
+.ov-player-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ov-player-col + .ov-player-col {
+  border-left: 3px solid var(--ov-divider);
+}
+
+.ov-player-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 24px 0 18px;
+  gap: 20px;
+  position: relative;
+}
+
+/* Layered Crex Avatar (Jersey underneath + Headshot seamlessly on top) */
+.ov-avatar {
+  position: relative;
+  width: 224px;
+  height: 224px;
+  flex-shrink: 0;
+  overflow: hidden;
+  animation: ov-player-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ov-avatar--compact {
+  width: 170px;
+  height: 138px;
+}
+
+.ov-avatar-jersey {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 96%;
+  height: auto;
+  object-fit: contain;
+  z-index: 1;
+}
+
+.ov-avatar-face {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 94%;
+  height: 94%;
+  object-fit: contain;
+  object-position: bottom center;
+  z-index: 2;
+}
+
+@keyframes ov-player-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ov-player-info {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+.ov-player-name {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-style: italic;
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.55);
+}
+
+.ov-player-figures-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ov-player-figures {
+  font-family: var(--font-display);
+  font-size: 46px;
+  line-height: 1;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.ov-striker-bat {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+}
+
+.ov-player-subbar {
+  height: 68px;
+  flex-shrink: 0;
+  border-top: 3px solid var(--ov-divider);
+  background: #040b18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 0 22px;
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  position: relative;
+}
+
+.ov-bowler-ball-wrap {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+}
+
+.ov-bowler-ball-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ov-bowler-ball-seam {
+    transform-origin: 24px 24px;
+    animation: ov-ball-spin 2.4s linear infinite;
+  }
+}
+
+@keyframes ov-ball-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   ROW 7: BOTTOM 4TH TICKER BAR (62px)
+   ========================================================================== */
+.ov-bottom-ticker {
+  height: 62px;
+  flex-shrink: 0;
+  border-top: 3px solid var(--ov-divider);
+  display: flex;
+  background: #040a16;
+  overflow: hidden;
+}
+
+.ov-superchat-pill {
+  width: 460px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  border-right: 3px solid var(--ov-divider);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ov-sc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.ov-sc-handle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.ov-sc-amount {
+  font-family: var(--font-display);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ov-marquee-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: #050d1c;
+}
+
+.ov-marquee-wrap--chase {
+  background: linear-gradient(90deg, #b51565 0%, #d81b60 50%, #9b1256 100%);
+}
+
+.ov-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-family: var(--font-broadcast);
+  font-size: 29px;
+  font-weight: 700;
+  color: var(--ov-gold);
+  letter-spacing: 0.03em;
+  animation: ov-ticker-scroll 30s linear infinite;
+}
+
+.ov-marquee-chunk {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 96px;
+}
+
+.ov-marquee-label {
+  color: #ffffff;
+  margin-right: 12px;
+}
+
+@keyframes ov-ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ==========================================================================
+   FULL-SCREEN NEON EVENT STINGER (FOUR / SIX / WICKET / MILESTONE)
+   Faithful to SK Advise / Cricket Sansar cyan-to-magenta broadcast stinger
+   ========================================================================== */
+.ov-stinger {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: radial-gradient(circle at 50% 45%, #120822 0%, #04050a 58%, #000000 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: ov-stinger-fade 0.22s ease-out;
+}
+
+.ov-stinger-frame-wrap {
+  position: relative;
+  width: 1580px;
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.ov-stinger-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: ov-stinger-frame-in 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ov-stinger-word {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-stinger);
+  font-size: 208px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-transform: uppercase;
+  line-height: 1;
+  text-shadow:
+    0 0 24px rgba(255, 255, 255, 0.9),
+    0 0 58px var(--stinger-glow, rgba(255, 0, 204, 0.85)),
+    0 0 110px var(--stinger-glow-2, rgba(0, 212, 255, 0.7));
+  animation: ov-stinger-word-in 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ov-stinger-word--compact {
+  font-size: 148px;
+}
+
+.ov-stinger-sub {
+  position: relative;
+  z-index: 2;
+  margin-top: 22px;
+  padding: 10px 34px;
+  border-radius: 999px;
+  background: rgba(8, 16, 36, 0.82);
+  border: 2px solid rgba(255, 255, 255, 0.42);
+  font-family: var(--font-broadcast);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffe600;
+  text-transform: uppercase;
+  animation: ov-stinger-sub-in 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ov-stinger-promo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 168px;
+  background: linear-gradient(90deg, #b80d1a 0%, #e01a28 50%, #9c0a15 100%);
+  border-top: 4px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 64px;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.ov-stinger-promo-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ov-stinger-promo-brand {
+  font-family: var(--font-stinger);
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.ov-stinger-promo-copy {
+  text-align: center;
+  flex: 1;
+  padding: 0 36px;
+}
+
+.ov-stinger-promo-headline {
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: 0.04em;
+}
+
+.ov-stinger-promo-sub {
+  font-family: var(--font-broadcast);
+  font-size: 26px;
+  color: #ffe600;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+
+@keyframes ov-stinger-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ov-stinger-frame-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.84);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ov-stinger-word-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) translateY(16px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes ov-stinger-sub-in {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   FULL-WIDTH BROADCAST CUTAWAY CARDS (Below Top Header)
+   ========================================================================== */
+.ov-cutaway {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #091730 0%, #050d1d 100%);
+  overflow: hidden;
+  animation: ov-stinger-fade 0.25s ease-out;
+}
+
+.ov-cutaway-banner {
+  height: 82px;
+  flex-shrink: 0;
+  padding: 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #625312 0%, #263957 42%, #0d1d38 100%);
+  border-bottom: 3px solid #eab308;
+}
+
+.ov-cutaway-banner--magenta {
+  background: linear-gradient(90deg, #561653 0%, #d6196b 50%, #691757 100%);
+  border-bottom: 3px solid var(--ov-divider);
+  justify-content: space-between;
+}
+
+.ov-cutaway-title-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ov-cutaway-logo {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 5px;
+  object-fit: contain;
+}
+
+.ov-cutaway-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ov-cutaway-pill {
+  background: #ffffff;
+  color: #0b162c;
+  font-family: var(--font-display);
+  font-size: 26px;
+  padding: 4px 20px;
+  border-radius: 999px;
+}
+
+.ov-cutaway-score-summary {
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: #f8fafc;
+}
+
+.ov-table-wrap {
+  flex: 1;
+  padding: 20px 44px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-broadcast-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-display);
+}
+
+.ov-broadcast-table th {
+  text-align: center;
+  font-size: 28px;
+  color: #facc15;
+  padding: 14px 12px;
+  border-bottom: 2px solid rgba(148, 163, 184, 0.35);
+  letter-spacing: 0.04em;
+}
+
+.ov-broadcast-table th:first-child,
+.ov-broadcast-table td:first-child {
+  text-align: left;
+}
+
+.ov-broadcast-table td {
+  text-align: center;
+  font-size: 34px;
+  color: #ffffff;
+  padding: 15px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.ov-broadcast-table--compact td {
+  font-size: 27px;
+  padding: 10px 10px;
+}
+
+.ov-bowler-cell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.ov-mini-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #eab308;
+  background: #102447;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.ov-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.ov-best-pill {
+  background: #facc15;
+  color: #0b1220;
+  font-size: 20px;
+  padding: 3px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.ov-wkt-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #facc15;
+  color: #09111f;
+}
+
+/* Playing XI 6+5 Grid */
+.ov-xi-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 28px 56px;
+  background: radial-gradient(circle at 50% 45%, #122959 0%, #07122b 80%);
+}
+
+.ov-xi-row {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+}
+
+.ov-xi-card {
+  width: 266px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-xi-photo-box {
+  height: 230px;
+  position: relative;
+  background: radial-gradient(circle at 50% 35%, #f8fafc 0%, #dbe5f4 100%);
+  overflow: hidden;
+}
+
+.ov-xi-tags {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 4;
+}
+
+.ov-xi-tag {
+  background: #0c1d3d;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 16px;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.ov-xi-tag--overseas {
+  background: #1d4ed8;
+}
+
+.ov-xi-nameplate {
+  height: 54px;
+  background: linear-gradient(90deg, #b81562 0%, #df1d74 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Match Info & Weather Cutaway */
+.ov-info-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 32px;
+  padding: 40px 56px;
+}
+
+.ov-info-box {
+  background: rgba(13, 35, 76, 0.78);
+  border: 2px solid rgba(142, 181, 227, 0.4);
+  border-radius: 14px;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ov-info-heading {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: #facc15;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid rgba(250, 204, 21, 0.35);
+  padding-bottom: 12px;
+}
+
+.ov-info-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 28px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  padding-bottom: 12px;
+}
+
+.ov-info-item span:first-child {
+  color: #9dc0eb;
+}
+
+.ov-info-item span:last-child {
+  color: #ffffff;
+  text-align: right;
+}
